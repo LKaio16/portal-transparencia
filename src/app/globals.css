@@ -1,71 +1,238 @@
 @import "tailwindcss";
 
+/* Paleta "jornal cívico": papel quente, grafite e um amarelo de marca-texto. */
 :root {
   color-scheme: light;
-  --bg: #f6f5f2;
-  --surface: #fcfcfb;
-  --ink: #0b0b0b;
-  --ink-2: #52514e;
-  --muted: #7a7974;
-  --line: #e3e1db;
-  --accent: #2a78d6;
-  --accent-soft: #e6effb;
-  --track: #ebe9e4;
+  --bg: #fcf6ea;
+  --surface: #fffdfa;
+  --surface-alt: #e3ddd2;
+  --ink: #15110a;
+  --ink-2: #3a362e;
+  --muted: #514d44;
+  --line: #c9c3b8;
+  --borda: #6d685e;
+  --accent: #5c4c00;
+  --accent-strong: #3f3400;
+  --accent-soft: #f7e9a8;
+  --marca: #f2cf3a;
+  --marca-hover: #dbb80c;
+  --foco: #6f5c00;
+  --track: #e8e1d4;
+  --verde: #15803d;
+  --verde-soft: #e7f6ec;
+  --alerta: #b45309;
+  --alerta-soft: #fdf3e2;
+  --grafite: #0f1215;
+  --grafite-2: #1b1f22;
+  --grafite-texto: #e6ecf0;
+  --grafite-muted: #a3a8ac;
+  --grafite-linha: #3f4346;
+  --sombra: 0 2px 4px rgb(21 17 10 / 0.05), 0 12px 28px rgb(21 17 10 / 0.08);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:where(:not([data-theme="light"])) {
     color-scheme: dark;
-    --bg: #121211;
-    --surface: #1a1a19;
-    --ink: #f0efec;
-    --ink-2: #c3c2b7;
-    --muted: #918f87;
-    --line: #2e2d2a;
-    --accent: #3987e5;
-    --accent-soft: #1d2a3b;
-    --track: #2a2927;
+    --bg: #040608;
+    --surface: #0c1013;
+    --surface-alt: #25292d;
+    --ink: #e6ecf0;
+    --ink-2: #c4cacf;
+    --muted: #9a9fa3;
+    --line: #3f4346;
+    --borda: #82878b;
+    --accent: #f5d547;
+    --accent-strong: #ffeea7;
+    --accent-soft: #2e2a14;
+    --foco: #e6c63a;
+    --track: #1f2428;
+    --verde: #4ade80;
+    --verde-soft: #13291d;
+    --alerta: #fbbf24;
+    --alerta-soft: #2c2212;
+    --sombra: 0 2px 4px rgb(0 0 0 / 0.3), 0 12px 28px rgb(0 0 0 / 0.35);
   }
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #121211;
-  --surface: #1a1a19;
-  --ink: #f0efec;
-  --ink-2: #c3c2b7;
-  --muted: #918f87;
-  --line: #2e2d2a;
-  --accent: #3987e5;
-  --accent-soft: #1d2a3b;
-  --track: #2a2927;
+  --bg: #040608;
+  --surface: #0c1013;
+  --surface-alt: #25292d;
+  --ink: #e6ecf0;
+  --ink-2: #c4cacf;
+  --muted: #9a9fa3;
+  --line: #3f4346;
+  --borda: #82878b;
+  --accent: #f5d547;
+  --accent-strong: #ffeea7;
+  --accent-soft: #2e2a14;
+  --foco: #e6c63a;
+  --track: #1f2428;
+  --verde: #4ade80;
+  --verde-soft: #13291d;
+  --alerta: #fbbf24;
+  --alerta-soft: #2c2212;
+  --sombra: 0 2px 4px rgb(0 0 0 / 0.3), 0 12px 28px rgb(0 0 0 / 0.35);
 }
 
 @theme inline {
   --color-bg: var(--bg);
   --color-surface: var(--surface);
+  --color-surface-alt: var(--surface-alt);
   --color-ink: var(--ink);
   --color-ink-2: var(--ink-2);
   --color-muted: var(--muted);
   --color-line: var(--line);
+  --color-borda: var(--borda);
   --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
   --color-accent-soft: var(--accent-soft);
+  --color-marca: var(--marca);
   --color-track: var(--track);
+  --color-verde: var(--verde);
+  --color-verde-soft: var(--verde-soft);
+  --color-alerta: var(--alerta);
+  --color-alerta-soft: var(--alerta-soft);
+  --color-grafite: var(--grafite);
+  --color-grafite-2: var(--grafite-2);
+  --shadow-card: var(--sombra);
   --font-sans: var(--font-texto), system-ui, sans-serif;
+  --font-titulo: var(--font-spline), var(--font-texto), system-ui, sans-serif;
 }
+
+@layer components {
+  .cartao {
+    @apply rounded-[20px] border border-line bg-surface;
+  }
+  .rotulo {
+    @apply text-xs font-bold uppercase tracking-[0.12em] text-muted;
+  }
+  .selo {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-sm font-bold;
+  }
+  .campo {
+    @apply min-h-[52px] w-full appearance-none rounded-full border border-borda bg-surface px-5 py-3 text-ink placeholder:text-muted focus:border-ink;
+    transition: border-color 150ms ease-out;
+  }
+  select.campo {
+    background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
+    background-position: calc(100% - 22px) 50%, calc(100% - 16px) 50%;
+    background-size: 6px 6px;
+    background-repeat: no-repeat;
+    padding-right: 2.75rem;
+  }
+  .botao {
+    @apply inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full bg-ink px-6 py-2.5 font-bold text-bg disabled:opacity-45;
+    transition: transform 150ms ease-out, background-color 150ms ease-out;
+  }
+  .botao:active { transform: translateY(1px); }
+  .titulo { font-family: var(--font-titulo); letter-spacing: -0.03em; }
+}
+
+/* Contraste: qualquer botão antigo "bg-accent text-white" fica legível no tema escuro. */
+:root[data-theme="dark"] .bg-accent.text-white { color: #000; }
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) .bg-accent.text-white { color: #000; }
+}
+
+html { overflow-x: clip; }
 
 body {
   background: var(--bg);
   color: var(--ink);
   font-family: var(--font-sans);
   font-size: 17px;
-  line-height: 1.55;
+  line-height: 1.6;
+  overflow-x: clip;
 }
+
+h1, h2, h3 { font-family: var(--font-titulo); letter-spacing: -0.02em; }
+
+::selection { background: var(--marca); color: #000; }
 
 a:focus-visible,
 button:focus-visible,
 input:focus-visible,
-select:focus-visible {
-  outline: 3px solid var(--accent);
+select:focus-visible,
+summary:focus-visible {
+  outline: 3px solid var(--foco);
   outline-offset: 2px;
+  border-radius: 8px;
+}
+
+.link-pular {
+  position: absolute;
+  left: 1rem;
+  top: -4rem;
+  z-index: 60;
+  background: var(--marca);
+  color: #000;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  font-weight: 700;
+}
+.link-pular:focus { top: 1rem; }
+
+/* Faixa que ocupa a largura toda mesmo dentro do <main> centralizado. */
+.sangria {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+}
+
+/* Realce de marca-texto: um bloco amarelo atrás da palavra. */
+.realce {
+  position: relative;
+  z-index: 0;
+  white-space: nowrap;
+  color: #000;
+}
+.realce::before {
+  content: "";
+  position: absolute;
+  inset: 0.08em -0.08em 0.02em;
+  z-index: -1;
+  background: var(--marca);
+  border-radius: 2px;
+  transform-origin: left center;
+  animation: realce-desenha 520ms cubic-bezier(0.16, 1, 0.3, 1) 450ms backwards;
+}
+@keyframes realce-desenha { from { transform: scaleX(0); } }
+
+/* Entrada do hero: só transform + opacidade, e o estado final é o padrão. */
+.entra {
+  animation: entra 720ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  animation-delay: calc(var(--i, 0) * 80ms);
+}
+@keyframes entra { from { opacity: 0; transform: translateY(32px); } }
+
+/* Link com sublinhado amarelo que cresce. */
+.sublinha { background: linear-gradient(var(--marca), var(--marca)) left bottom / 0 3px no-repeat; transition: background-size 180ms ease-out; }
+.sublinha:hover, .sublinha:focus-visible, .sublinha[aria-current="page"] { background-size: 100% 3px; }
+
+/* Botão com círculo-seta. */
+.seta-circulo { transition: transform 180ms ease-out; }
+a:hover .seta-circulo, a:focus-visible .seta-circulo, button:hover .seta-circulo { transform: translateX(3px); }
+
+/* Cartões clicáveis sobem 2px no hover (só com ponteiro fino). */
+@media (hover: hover) and (pointer: fine) {
+  .cartao-link { transition: transform 180ms ease-out, box-shadow 180ms ease-out, border-color 180ms ease-out; }
+  .cartao-link:hover { transform: translateY(-2px); box-shadow: var(--sombra); border-color: var(--borda); }
+}
+
+/* Leque de outros mandatos. */
+.leque-lado { transition: transform 200ms ease-out; }
+
+/* Acordeão nativo com +/−. */
+details > summary { list-style: none; cursor: pointer; }
+details > summary::-webkit-details-marker { display: none; }
+details .mais { transition: transform 200ms ease-out; }
+details[open] .mais { transform: rotate(45deg); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 1ms !important;
+  }
 }

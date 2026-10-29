@@ -25,23 +25,23 @@ export default function ListaEstaduais({ deputados }: { deputados: ResumoEstadua
 
   return (
     <section className="space-y-4">
-      <div className="grid gap-3 rounded-xl border border-line bg-surface p-4 sm:grid-cols-3">
-        <label className="block space-y-1">
-          <span className="text-sm font-bold">Estado</span>
-          <select value={uf} onChange={(e) => { setUf(e.target.value); setPartido(""); }} className="w-full rounded-lg border border-line bg-bg px-3 py-2">
+      <div className="cartao grid gap-4 p-4 sm:grid-cols-3 sm:p-5">
+        <label className="block space-y-1.5">
+          <span className="text-sm font-bold text-ink-2">Estado</span>
+          <select value={uf} onChange={(e) => { setUf(e.target.value); setPartido(""); }} className="campo">
             <option value="">Todos os estados</option>
             {Object.entries(UFS).map(([sigla, nome]) => (
               <option key={sigla} value={sigla}>{nome}</option>
             ))}
           </select>
         </label>
-        <label className="block space-y-1">
-          <span className="text-sm font-bold">Nome</span>
-          <input type="search" value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Digite um nome" className="w-full rounded-lg border border-line bg-bg px-3 py-2" />
+        <label className="block space-y-1.5">
+          <span className="text-sm font-bold text-ink-2">Nome</span>
+          <input type="search" value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Digite um nome" className="campo" />
         </label>
-        <label className="block space-y-1">
-          <span className="text-sm font-bold">Partido</span>
-          <select value={partido} onChange={(e) => setPartido(e.target.value)} className="w-full rounded-lg border border-line bg-bg px-3 py-2">
+        <label className="block space-y-1.5">
+          <span className="text-sm font-bold text-ink-2">Partido</span>
+          <select value={partido} onChange={(e) => setPartido(e.target.value)} className="campo">
             <option value="">Todos os partidos</option>
             {partidos.map((p) => (
               <option key={p} value={p}>{p}</option>
@@ -58,10 +58,10 @@ export default function ListaEstaduais({ deputados }: { deputados: ResumoEstadua
       <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {filtrados.slice(0, LIMITE).map((d) => (
           <li key={d.id}>
-            <Link href={`/estadual/${d.id}`} className="flex h-full gap-3 rounded-xl border border-line bg-surface p-3 transition hover:border-accent">
+            <Link href={`/estadual/${d.id}`} className="group flex h-full gap-4 rounded-2xl border border-line bg-surface p-4 shadow-card transition hover:-translate-y-0.5 hover:border-accent hover:shadow-lg">
               <Iniciais nome={d.nome} />
               <div className="min-w-0 flex-1 space-y-1">
-                <div className="font-bold leading-tight">{d.nome}</div>
+                <div className="font-bold leading-tight group-hover:text-accent">{d.nome}</div>
                 <div className="text-sm text-ink-2">{d.partido} · {UFS[d.uf] ?? d.uf}</div>
                 <div className="text-sm text-ink-2">
                   Patrimônio: {d.patrimonio === null ? "—" : formatarReaisCurto(d.patrimonio)}

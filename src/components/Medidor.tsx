@@ -1,4 +1,4 @@
-// Barra de 0 a 100% com um traço marcando a média da Câmara.
+// Barra de 0 a 100% com um traço marcando a média da Casa.
 export default function Medidor({
   valor,
   media,
@@ -17,14 +17,14 @@ export default function Medidor({
       aria-valuemin={0}
       aria-valuemax={100}
       aria-valuenow={valor ?? undefined}
-      className={`relative mt-1 w-full rounded-full bg-track ${alto ? "h-4" : "h-2"}`}
+      className={`relative mt-1.5 w-full rounded-full bg-track ${alto ? "h-3" : "h-2"}`}
     >
-      <div className="h-full rounded-full bg-accent" style={{ width: `${valor ?? 0}%` }} />
+      <div className="h-full rounded-full bg-linear-to-r from-accent to-accent-strong" style={{ width: `${valor ?? 0}%` }} />
       {media !== undefined && (
         <div
-          title={`Média da Câmara: ${Math.round(media)}%`}
-          className={`absolute w-0.5 rounded bg-ink ${alto ? "-top-1.5 h-7" : "-top-1 h-4"}`}
-          style={{ left: `calc(${media}% - 1px)` }}
+          title={`Média da Casa: ${Math.round(media)}%`}
+          className={`absolute w-1 rounded-full bg-ink ${alto ? "-top-1.5 h-6" : "-top-1 h-4"}`}
+          style={{ left: `calc(${media}% - 2px)` }}
         />
       )}
     </div>
