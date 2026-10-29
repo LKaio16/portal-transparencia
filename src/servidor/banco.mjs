@@ -36,13 +36,20 @@ const ESQUEMA = `
   CREATE INDEX IF NOT EXISTS tentativas_chave ON tentativas (chave, criado_em);
 `;
 
+const comandosDoEsquema = () =>
+  ESQUEMA.split(";")
+    .map((c) => c.replace(/--.*$/gm, "").trim())
+    .filter(Boolean);
+
 let conexao = null;
 
 async function conectar() {
   if (process.env.DATABASE_URL) {
     const { default: postgres } = await import("postgres");
-    const sql = postgres(process.env.DATABASE_URL, { max: 3, onnotice: () => {} });
-    await sql.unsafe(ESQUEMA);
+    // prepare: false porque poolers como o do Neon e o do Supabase (PgBouncer) não guardam comandos preparados.
+    const sql = postgres(process.env.DATABASE_URL, { max: 3, prepare: false, onnotice: () => {} });
+    // Um comando por vez: o modo padrão do driver não aceita vários comandos numa só chamada.
+    for (const comando of comandosDoEsquema()) await sql.unsafe(comando);
     return { consultar: (texto, params = []) => sql.unsafe(texto, params), fechar: () => sql.end() };
   }
   // Na Vercel o disco é só leitura: sem DATABASE_URL os alertas não funcionariam, então avisamos claramente.
