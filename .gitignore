@@ -48,3 +48,6 @@ next-env.d.ts
 /data/emails-enviados
 .env*.local
 !.env.example
+
+# configuração local do Claude Code
+/.claude
