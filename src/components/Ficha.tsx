@@ -18,6 +18,16 @@ import SeguirParlamentar from "./SeguirParlamentar";
 
 const MESES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
 
+const SECOES_NAV = [
+  { id: "presenca", rotulo: "Presença" },
+  { id: "votacoes", rotulo: "Votações" },
+  { id: "projetos", rotulo: "Projetos" },
+  { id: "gastos", rotulo: "Gastos" },
+  { id: "eleicoes", rotulo: "Patrimônio e campanha" },
+  { id: "noticias", rotulo: "Notícias" },
+  { id: "justica", rotulo: "Na Justiça" },
+];
+
 type Props = {
   casa: Casa;
   p: Parlamentar;
@@ -36,35 +46,49 @@ export default function Ficha({ casa, p, meta, eleitoral, resumos, noticias, pro
 
   return (
     <article className="space-y-8">
-      <Link href={casa === "camara" ? "/" : "/senadores"} className="text-ink-2 underline">
-        ← Todos os {textos.plural}
+      <Link href={casa === "camara" ? "/" : "/senadores"} className="inline-flex items-center gap-1.5 font-bold text-ink-2 hover:text-accent">
+        <span aria-hidden>←</span> Todos os {textos.plural}
       </Link>
 
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-center">
-        <Image
-          src={p.foto}
-          alt={`Foto de ${p.nome}`}
-          width={120}
-          height={160}
-          unoptimized
-          priority
-          className="h-40 w-[120px] rounded-xl bg-track object-cover"
-        />
-        <div className="space-y-1">
-          <h1 className="text-3xl font-bold">{p.nome}</h1>
-          <p className="text-lg text-ink-2">
-            {textos.cargo}
-            {p.participacao && p.participacao !== "Titular" && ` (${p.participacao.toLowerCase()} em exercício)`} · {p.partido} ·{" "}
-            {UFS[p.uf] ?? p.uf}
-          </p>
-          {p.mandato?.fim && <p className="text-sm text-ink-2">Mandato até {formatarData(p.mandato.fim)}</p>}
-          <p className="flex flex-wrap gap-x-3 text-sm text-ink-2">
-            <a href={paginaOficial} target="_blank" rel="noreferrer" className="underline">Página oficial</a>
-            {p.email && <a href={`mailto:${p.email}`} className="underline">Enviar e-mail ao gabinete</a>}
-            <Link href={`/comparar?p=${chaveComparar}`} className="underline">Comparar com outros</Link>
-          </p>
+      <header className="cartao relative overflow-hidden">
+        <div aria-hidden className="h-24 bg-linear-to-r from-accent to-accent-strong sm:h-28" />
+        <div className="flex flex-col gap-5 px-5 pb-6 sm:flex-row sm:items-end sm:gap-6 sm:px-8">
+          <Image
+            src={p.foto}
+            alt={`Foto de ${p.nome}`}
+            width={128}
+            height={168}
+            unoptimized
+            priority
+            className="-mt-14 h-44 w-32 shrink-0 rounded-2xl border-4 border-surface bg-track object-cover shadow-lg sm:-mt-16"
+          />
+          <div className="min-w-0 flex-1 space-y-2">
+            <h1 className="text-3xl font-bold leading-tight sm:text-4xl">{p.nome}</h1>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="selo bg-accent-soft text-accent">{p.partido}</span>
+              <span className="selo bg-track text-ink-2">{UFS[p.uf] ?? p.uf}</span>
+              <span className="selo bg-track text-ink-2">
+                {textos.cargo}
+                {p.participacao && p.participacao !== "Titular" && ` (${p.participacao.toLowerCase()} em exercício)`}
+              </span>
+            </div>
+            {p.mandato?.fim && <p className="text-sm text-muted">Mandato até {formatarData(p.mandato.fim)}</p>}
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-2 border-t border-line px-5 py-3 text-sm font-bold sm:px-8">
+          <a href={paginaOficial} target="_blank" rel="noreferrer" className="rounded-lg px-3 py-1.5 text-accent hover:bg-accent-soft">Página oficial ↗</a>
+          {p.email && <a href={`mailto:${p.email}`} className="rounded-lg px-3 py-1.5 text-accent hover:bg-accent-soft">Enviar e-mail ao gabinete</a>}
+          <Link href={`/comparar?p=${chaveComparar}`} className="rounded-lg px-3 py-1.5 text-accent hover:bg-accent-soft">Comparar com outros</Link>
         </div>
       </header>
+
+      <nav aria-label="Seções da ficha" className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 text-sm font-bold">
+        {SECOES_NAV.map((s) => (
+          <a key={s.id} href={`#${s.id}`} className="shrink-0 rounded-full border border-line bg-surface px-3.5 py-1.5 text-ink-2 hover:border-accent hover:text-accent">
+            {s.rotulo}
+          </a>
+        ))}
+      </nav>
 
       <SeguirParlamentar chave={chaveComparar} nome={p.nome} />
 
@@ -97,8 +121,8 @@ function Resumo({ p, meta, casa }: { p: Parlamentar; meta: Meta; casa: Casa }) {
   const comparar = (valor: number | null, media: number) =>
     valor === null ? "" : valor >= media ? "acima da média" : "abaixo da média";
   return (
-    <section aria-labelledby="titulo-resumo" className="rounded-2xl bg-accent-soft p-5">
-      <h2 id="titulo-resumo" className="mb-3 text-xl font-bold">Resumo de {meta.ano}, em poucas palavras</h2>
+    <section aria-labelledby="titulo-resumo" className="rounded-3xl bg-accent-soft p-5 sm:p-7">
+      <h2 id="titulo-resumo" className="mb-4 text-xl font-bold">Resumo de {meta.ano}, em poucas palavras</h2>
       <ul className="grid gap-3 sm:grid-cols-2">
         <ItemResumo
           icone="🏛️"
@@ -115,11 +139,11 @@ function Resumo({ p, meta, casa }: { p: Parlamentar; meta: Meta; casa: Casa }) {
 
 function ItemResumo({ icone, titulo, texto }: { icone: string; titulo: string; texto: string }) {
   return (
-    <li className="flex items-start gap-3 rounded-xl bg-surface p-3">
-      <span aria-hidden className="text-2xl">{icone}</span>
-      <span>
-        <strong className="block text-2xl">{titulo}</strong>
-        <span className="text-ink-2">{texto}</span>
+    <li className="flex items-start gap-3 rounded-2xl bg-surface p-4 shadow-card">
+      <span aria-hidden className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-accent-soft text-xl">{icone}</span>
+      <span className="min-w-0">
+        <strong className="block text-2xl leading-tight">{titulo}</strong>
+        <span className="text-sm text-ink-2">{texto}</span>
       </span>
     </li>
   );
@@ -127,9 +151,9 @@ function ItemResumo({ icone, titulo, texto }: { icone: string; titulo: string; t
 
 export function Secao({ id, titulo, explicacao, children }: { id: string; titulo: string; explicacao: string; children: React.ReactNode }) {
   return (
-    <section aria-labelledby={id} className="space-y-4 rounded-2xl border border-line bg-surface p-5">
-      <div>
-        <h2 id={id} className="text-2xl font-bold">{titulo}</h2>
+    <section id={id} aria-labelledby={`${id}-titulo`} className="cartao scroll-mt-24 space-y-5 p-5 sm:p-7">
+      <div className="space-y-1.5 border-b border-line pb-4">
+        <h2 id={`${id}-titulo`} className="text-2xl font-bold">{titulo}</h2>
         <p className="text-ink-2">{explicacao}</p>
       </div>
       {children}

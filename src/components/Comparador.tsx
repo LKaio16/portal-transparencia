@@ -62,7 +62,7 @@ export default function Comparador({ itens }: { itens: ItemComparacao[] }) {
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
               placeholder="Digite um nome"
-              className="w-full rounded-lg border border-line bg-surface px-3 py-2"
+              className="campo"
             />
           </label>
           {sugestoes.length > 0 && (
@@ -89,11 +89,11 @@ export default function Comparador({ itens }: { itens: ItemComparacao[] }) {
       )}
 
       {selecionados.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-line p-6 text-center text-ink-2">
+        <p className="cartao border-dashed p-10 text-center text-ink-2">
           Digite o nome de um deputado ou senador acima para começar.
         </p>
       ) : (
-        <div className="overflow-x-auto">
+        <div className="cartao overflow-x-auto p-3 sm:p-5">
           <table className="w-full table-fixed border-separate border-spacing-0 text-sm">
             <thead>
               <tr>
