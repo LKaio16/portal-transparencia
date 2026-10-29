@@ -1,36 +1,40 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Olho no Mandato
 
-## Getting Started
+Site que mostra, em linguagem simples, se os deputados federais estão trabalhando:
+presença nas sessões, participação nas votações, projetos apresentados e gastos da cota parlamentar.
 
-First, run the development server:
+Todos os dados vêm de fontes oficiais da Câmara dos Deputados:
+- [Dados Abertos da Câmara](https://dadosabertos.camara.leg.br) (arquivos em lote e API v2)
+- [Cota parlamentar](https://www.camara.leg.br/cota-parlamentar/)
+
+## Como rodar
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run coletar   # baixa os dados do ano e gera src/data/*.json (~20 s)
+npm run dev       # abre em http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Para processar outro ano: `ANO=2025 npm run coletar`.
+Para reprocessar sem baixar de novo: `npm run coletar -- --sem-baixar`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Estrutura
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Caminho | O que é |
+|---|---|
+| `scripts/coletar.mjs` | Baixa os arquivos da Câmara, calcula os números e grava os JSON |
+| `src/data/` | Dados gerados (um JSON por deputado + índice + médias) |
+| `src/app/page.tsx` | Página inicial com busca e filtros |
+| `src/app/deputado/[id]/page.tsx` | Ficha do deputado |
+| `src/app/como-funciona/page.tsx` | Metodologia e canal de correções |
+| `.github/workflows/coletar-dados.yml` | Atualização diária automática (GitHub Actions) |
 
-## Learn More
+As páginas são geradas estaticamente no build (uma por deputado), então o site é rápido e barato de hospedar.
 
-To learn more about Next.js, take a look at the following resources:
+## Publicar
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Suba o projeto para um repositório no GitHub.
+2. Importe o repositório na [Vercel](https://vercel.com) (plano gratuito).
+3. A action `Coletar dados da Câmara` roda todo dia e faz commit dos dados novos, o que dispara um novo deploy.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Antes de publicar, troque o e-mail de correções em `src/app/como-funciona/page.tsx`.
