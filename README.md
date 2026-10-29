@@ -19,6 +19,8 @@ npm run coletar:noticias  # notícias das agências oficiais e da imprensa (GDEL
 npm run resumir       # opcional: resumos em linguagem simples com IA (precisa de ANTHROPIC_API_KEY)
 npm run dev           # abre em http://localhost:3000
 npm run alertas       # envia o resumo diário para quem segue parlamentares
+npm run coletar:assembleias  # atividade nas Assembleias com dados abertos (hoje: ALMG)
+npm run coletar:tse-local    # deputados estaduais (2022), prefeitos e vereadores (2024); baixa ~2 GB na 1ª vez
 ```
 
 Para processar outro ano: `ANO=2025 npm run coletar`.
@@ -44,6 +46,10 @@ O CPF dos parlamentares é usado só para cruzar as bases da Câmara com o TSE e
 | `src/servidor/` | Banco, e-mails e regras dos alertas (só roda no servidor) |
 | `src/app/api/alertas/` | Inscrição, confirmação, conta e descadastro |
 | `scripts/enviar-alertas.mjs` | E-mail diário com as novidades |
+| `scripts/assembleias/` | Um adaptador por Assembleia Legislativa (hoje: `mg.mjs`) |
+| `scripts/coletar-tse-local.mjs` | Eleitos estaduais e municipais, patrimônio e campanhas |
+| `src/app/estaduais/`, `src/app/estadual/[id]/` | Deputados estaduais |
+| `src/app/cidades/` | "Minha cidade": prefeito, vereadores e links para quem representa o estado |
 | `src/app/como-funciona/page.tsx` | Metodologia e canal de correções |
 | `.github/workflows/coletar-dados.yml` | Atualização diária automática (GitHub Actions) |
 
@@ -74,3 +80,12 @@ Para colocar no ar:
 4. Troque os e-mails de exemplo em `src/app/como-funciona/page.tsx` e `src/app/privacidade/page.tsx`.
 
 O banco local só aceita um processo por vez: pare o `npm run start` antes de rodar `npm run alertas` no computador.
+
+## Adicionar uma Assembleia Legislativa
+
+1. Crie `scripts/assembleias/<uf>.mjs` exportando `casa` (nome, sigla, site, se publica presença) e
+   `coletar(ano)`, que devolve a lista de deputados em exercício no mesmo formato de `mg.mjs`
+   (`nomeCivil`, `proposicoes`, `gastos`...).
+2. Adicione o adaptador à lista em `scripts/coletar-assembleias.mjs`.
+3. Rode `npm run coletar:assembleias` e depois `npm run coletar:tse-local estaduais`: a ligação com os eleitos
+   é feita pelo nome civil e pelo estado.

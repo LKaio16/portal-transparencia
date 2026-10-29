@@ -1,6 +1,6 @@
 # Baixa os dados da Câmara, do Senado e as notícias todo dia, salva no repositório e envia os alertas.
 # Se o site estiver na Vercel ligado a este repositório, cada commit dispara um novo deploy.
-# Os dados do TSE (npm run coletar:tse) não mudam todo dia e são atualizados manualmente.
+# Os dados do TSE (npm run coletar:tse e coletar:tse-local) não mudam todo dia e são atualizados manualmente.
 name: Coletar dados
 
 on:
@@ -27,6 +27,8 @@ jobs:
       - run: npm ci
       - run: npm run coletar
       - run: npm run coletar:noticias
+      # Atividade nas Assembleias Legislativas com dados abertos. Se uma estiver fora do ar, as outras seguem.
+      - run: npm run coletar:assembleias
       - name: Resumir propostas novas
         if: env.TEM_IA == 'true'
         env:

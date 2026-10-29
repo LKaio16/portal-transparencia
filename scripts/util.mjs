@@ -23,15 +23,21 @@ export async function* linhasCsv(arquivo, { encoding = "utf8", fromLine = 1 } = 
   for await (const linha of parser) yield linha;
 }
 
-export async function buscarJson(url, tentativas = 3) {
+export async function buscarJson(url, tentativas = 5) {
   for (let i = 1; ; i++) {
+    let espera = 1000 * i;
     try {
       const resp = await fetch(url, { headers: { accept: "application/json" } });
+      if (resp.status === 429) {
+        // Limite de consultas: espera o que o servidor pedir (ou cada vez mais) e tenta de novo.
+        espera = (Number(resp.headers.get("retry-after")) || 5 * i) * 1000;
+        throw new Error("HTTP 429");
+      }
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
       return await resp.json();
     } catch (erro) {
       if (i >= tentativas) throw new Error(`${url}: ${erro.message}`);
-      await new Promise((r) => setTimeout(r, 1000 * i));
+      await new Promise((r) => setTimeout(r, espera));
     }
   }
 }

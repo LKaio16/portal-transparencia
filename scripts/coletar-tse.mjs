@@ -11,59 +11,22 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { unzipSync } from "fflate";
 import {
-  PASTA_RAW,
   PASTA_SAIDA,
   arredondar,
   buscarJson,
   emParalelo,
-  linhasCsv,
   normalizarNome,
   numeroBr,
   ordenarSomas,
   salvarJson,
 } from "./util.mjs";
+import { CDN, PASTA_TSE, arquivoTse, ehPublico, lerTse, origemReceita, resumirTipoBem, titulo, valido } from "./tse-comum.mjs";
 
-const PASTA_TSE = path.join(PASTA_RAW, "tse");
-const CDN = "https://cdn.tse.jus.br/estatistica/sead/odsele";
 const ANO_ATUAL = 2026;
 const ANOS_CANDIDATOS = [2018, 2022, ANO_ATUAL];
 const ANOS_RECEITAS = [2018, 2022];
 const CARGOS_SENADO = new Set(["SENADOR", "1º SUPLENTE", "2º SUPLENTE"]);
-
-async function arquivoTse(nomeCsv, urlZip) {
-  const destino = path.join(PASTA_TSE, nomeCsv);
-  if (fs.existsSync(destino)) return destino;
-  fs.mkdirSync(PASTA_TSE, { recursive: true });
-  console.log(`Baixando ${urlZip} (só na primeira vez)...`);
-  const resp = await fetch(urlZip);
-  if (!resp.ok) throw new Error(`Falha ao baixar ${urlZip}: HTTP ${resp.status}`);
-  const zip = new Uint8Array(await resp.arrayBuffer());
-  const arquivos = unzipSync(zip, { filter: (f) => f.name.endsWith(nomeCsv) });
-  const conteudo = Object.values(arquivos)[0];
-  if (!conteudo) throw new Error(`${nomeCsv} não encontrado em ${urlZip}`);
-  fs.writeFileSync(destino, conteudo);
-  return destino;
-}
-
-const lerTse = (arquivo) => linhasCsv(arquivo, { encoding: "latin1" });
-const valido = (v) => v && !String(v).startsWith("#NULO") && v !== "-1" && v !== "-4";
-const titulo = (t) => String(t ?? "").toLowerCase().replace(/(^|\s)\S/g, (c) => c.toUpperCase());
-
-// Agrupa a origem do dinheiro de campanha em categorias fáceis de entender.
-function origemReceita(r) {
-  if (r.DS_FONTE_RECEITA === "FUNDO ESPECIAL") return "Fundo eleitoral (dinheiro público)";
-  if (r.DS_FONTE_RECEITA === "FUNDO PARTIDARIO") return "Fundo partidário (dinheiro público)";
-  const o = r.DS_ORIGEM_RECEITA ?? "";
-  if (o.includes("pessoas f")) return "Doações de pessoas";
-  if (o.includes("próprios") || o.includes("prÓprios") || o.includes("próprios")) return "Dinheiro do próprio candidato";
-  if (o.includes("Financiamento Coletivo") || o.includes("Internet")) return "Vaquinha online";
-  if (o.includes("partido")) return "Repasses do partido (outros recursos)";
-  if (o.includes("outros candidatos")) return "Repasses de outros candidatos";
-  return "Outras origens";
-}
-const ehPublico = (origem) => origem.includes("dinheiro público");
 
 async function main() {
   // --- Quem procurar ---
@@ -208,17 +171,6 @@ async function main() {
   }
   salvarJson("tse.json", saida);
   console.log(`Pronto: dados eleitorais de ${Object.keys(saida).length} parlamentares.`);
-}
-
-// "Apartamento" / "Casa" / "Quotas ou quinhões de capital" ... agrupados em poucas categorias.
-function resumirTipoBem(t) {
-  const s = String(t ?? "").toLowerCase();
-  if (/apartamento|casa|terreno|prédio|predio|sala|loja|imóvel|imovel|galpão|construção|benfeitoria/.test(s)) return "Imóveis urbanos";
-  if (/rural|fazenda|terra nua|sítio|sitio|chácara|chacara/.test(s)) return "Imóveis rurais";
-  if (/veículo|veiculo|aeronave|embarcação|embarcacao|automóvel/.test(s)) return "Veículos, barcos e aviões";
-  if (/quota|ações|acoes|participaç|participac/.test(s)) return "Participação em empresas";
-  if (/depósito|deposito|poupança|poupanca|aplicação|aplicacao|fundo|renda fixa|dinheiro|espécie|especie|conta|título|titulo|cripto/.test(s)) return "Dinheiro e aplicações";
-  return "Outros bens";
 }
 
 main().catch((erro) => {

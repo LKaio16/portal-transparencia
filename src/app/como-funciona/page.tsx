@@ -85,6 +85,13 @@ export default function ComoFunciona() {
             Soma das receitas declaradas na prestação de contas da campanha que deu o mandato atual. Consideramos dinheiro público o
             que veio do Fundo Especial de Financiamento de Campanha (fundo eleitoral) e do Fundo Partidário.
           </Item>
+          <Item termo="Deputados estaduais, prefeitos e vereadores">
+            Partimos da lista de eleitos do TSE (deputados estaduais e distritais em 2022; prefeitos e vereadores em 2024), com o
+            patrimônio declarado e o custo das campanhas. Mostramos quem foi eleito, que pode não ser quem está no cargo hoje: vices e
+            suplentes assumem quando o titular morre, renuncia, é cassado ou se afasta. Projetos e gastos dos deputados estaduais só
+            aparecem para as Assembleias que publicam dados abertos num formato que conseguimos ler (por enquanto, Minas Gerais). As
+            câmaras municipais ainda não têm um padrão nacional de dados abertos.
+          </Item>
           <Item termo="Notícias">
             Buscamos todo dia as notícias da Agência Câmara e da Agência Senado e, na imprensa, pela base aberta GDELT. Nas agências,
             só ligamos a notícia ao parlamentar quando aparecem o nome e o estado juntos, como em &quot;deputada Fulana (PT-SP)&quot;. Na

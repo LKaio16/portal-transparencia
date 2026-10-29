@@ -29,8 +29,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               Olho no Mandato
             </Link>
             <nav className="flex flex-wrap gap-x-4 gap-y-1 text-base">
+              <Link href="/cidades" className="hover:underline">Minha cidade</Link>
               <Link href="/" className="hover:underline">Deputados</Link>
               <Link href="/senadores" className="hover:underline">Senadores</Link>
+              <Link href="/estaduais" className="hover:underline">Estaduais</Link>
               <Link href="/comparar" className="hover:underline">Comparar</Link>
               <Link href="/alertas/conta" prefetch={false} className="hover:underline">Meus alertas</Link>
               <Link href="/como-funciona" className="hover:underline">Como funciona</Link>

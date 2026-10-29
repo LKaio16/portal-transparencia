@@ -15,7 +15,9 @@
     "prebuild": "node scripts/validar-curadoria.mjs",
     "validar-curadoria": "node scripts/validar-curadoria.mjs",
     "coletar:noticias": "node scripts/coletar-noticias.mjs",
-    "alertas": "node scripts/enviar-alertas.mjs"
+    "alertas": "node scripts/enviar-alertas.mjs",
+    "coletar:assembleias": "node scripts/coletar-assembleias.mjs",
+    "coletar:tse-local": "node scripts/coletar-tse-local.mjs"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.2.17",

@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { carregarIndice, carregarMeta, type Casa } from "@/lib/dados";
 import { CASAS, formatarPercentual, formatarReaisCurto } from "@/lib/formato";
@@ -24,6 +25,14 @@ export default function PaginaLista({ casa }: { casa: Casa }) {
         ))}
       </nav>
 
+      <Link href="/cidades" className="flex items-center justify-between gap-3 rounded-2xl bg-accent p-4 text-white">
+        <span>
+          <strong className="block text-lg">Quem representa a sua cidade?</strong>
+          <span className="text-sm opacity-90">Prefeito, vereadores, deputados e senadores, em um só lugar.</span>
+        </span>
+        <span aria-hidden className="text-2xl">→</span>
+      </Link>
+
       <section className="space-y-3">
         <h1 className="text-3xl font-bold leading-tight sm:text-4xl">Seu {textos.singular} está trabalhando?</h1>
         <p className="max-w-2xl text-lg text-ink-2">
@@ -40,7 +49,9 @@ export default function PaginaLista({ casa }: { casa: Casa }) {
       </section>
       <p className="-mt-5 text-sm text-muted">Médias de {meta.ano}, até agora.</p>
 
-      <ListaParlamentares casa={casa} parlamentares={parlamentares} medias={meta.medias} />
+      <Suspense>
+        <ListaParlamentares casa={casa} parlamentares={parlamentares} medias={meta.medias} />
+      </Suspense>
     </div>
   );
 }

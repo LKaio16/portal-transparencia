@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import type { Casa, ResumoParlamentar } from "@/lib/dados";
 import { CASAS, UFS, formatarPercentual, formatarReaisCurto } from "@/lib/formato";
@@ -31,7 +32,8 @@ export default function ListaParlamentares({
 }) {
   const textos = CASAS[casa];
   const [busca, setBusca] = useState("");
-  const [uf, setUf] = useState("");
+  const params = useSearchParams();
+  const [uf, setUf] = useState(params.get("uf")?.toUpperCase() ?? "");
   const [partido, setPartido] = useState("");
   const [ordem, setOrdem] = useState<Ordem>("nome");
 

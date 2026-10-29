@@ -72,8 +72,14 @@ export default function Ficha({ casa, p, meta, eleitoral, resumos, noticias, pro
       <SecaoPresenca p={p} media={meta.medias.presenca} casa={casa} />
       <SecaoVotacoes p={p} media={meta.medias.votacoes} resumos={resumos} />
       <SecaoProjetos p={p} media={meta.medias.proposicoes} casa={casa} resumos={resumos} />
-      <SecaoGastos p={p} media={meta.medias.gastos} meta={meta} paginaOficial={paginaOficial} casa={casa} />
-      <SecaoEleicoes p={p} eleitoral={eleitoral} />
+      <SecaoGastos
+        gastos={p.gastos}
+        media={meta.medias.gastos}
+        meta={meta}
+        paginaOficial={paginaOficial}
+        explicacao={`A cota parlamentar${casa === "senado" ? " (CEAPS)" : ""} é uma verba mensal para despesas do mandato: passagens, combustível, escritório, divulgação etc. O parlamentar gasta e a Casa reembolsa.`}
+      />
+      <SecaoEleicoes eleitoral={eleitoral} ehSuplente={p.participacao?.includes("Suplente")} />
       <SecaoNoticias noticias={noticias} />
       <SecaoJustica processos={processos} />
 
@@ -141,7 +147,7 @@ function Legenda({ media }: { media: number }) {
 }
 
 // Barras horizontais de uma série só, com o valor escrito ao lado (não depende só da cor).
-function BarrasValores({ itens }: { itens: { rotulo: string; valor: number }[] }) {
+export function BarrasValores({ itens }: { itens: { rotulo: string; valor: number }[] }) {
   const maior = Math.max(...itens.map((i) => i.valor), 1);
   return (
     <ul className="space-y-3">
@@ -303,7 +309,7 @@ function SecaoProjetos({ p, media, casa, resumos }: { p: Parlamentar; media: num
   );
 }
 
-function ItemProjeto({ item, resumo }: { item: Proposicao; resumo?: string }) {
+export function ItemProjeto({ item, resumo }: { item: Proposicao; resumo?: string }) {
   return (
     <li className="space-y-1 py-3">
       <div className="text-sm text-muted">
@@ -329,8 +335,19 @@ function ItemProjeto({ item, resumo }: { item: Proposicao; resumo?: string }) {
   );
 }
 
-function SecaoGastos({ p, media, meta, paginaOficial, casa }: { p: Parlamentar; media: number; meta: Meta; paginaOficial: string; casa: Casa }) {
-  const g = p.gastos;
+export function SecaoGastos({
+  gastos: g,
+  media,
+  meta,
+  paginaOficial,
+  explicacao,
+}: {
+  gastos: Parlamentar["gastos"];
+  media?: number;
+  meta: Pick<Meta, "ano" | "atualizadoEm">;
+  paginaOficial: string;
+  explicacao: string;
+}) {
   const atualizado = new Date(meta.atualizadoEm);
   const ultimoMes = meta.ano === atualizado.getFullYear() ? atualizado.getMonth() + 1 : 12;
   const meses = g.porMes.slice(0, ultimoMes);
@@ -340,11 +357,11 @@ function SecaoGastos({ p, media, meta, paginaOficial, casa }: { p: Parlamentar; 
     <Secao
       id="gastos"
       titulo="Gastos com dinheiro público"
-      explicacao={`A cota parlamentar${casa === "senado" ? " (CEAPS)" : ""} é uma verba mensal para despesas do mandato: passagens, combustível, escritório, divulgação etc. O parlamentar gasta e a Casa reembolsa.`}
+      explicacao={explicacao}
     >
       <p className="text-lg">
-        Gastou <strong>{formatarReais(g.total)}</strong> em {g.documentos} notas fiscais. {g.total > media ? "Acima" : "Abaixo"} da média da
-        Casa ({formatarReais(media)}).
+        Gastou <strong>{formatarReais(g.total)}</strong> em {g.documentos} notas fiscais.
+        {media !== undefined && ` ${g.total > media ? "Acima" : "Abaixo"} da média da Casa (${formatarReais(media)}).`}
       </p>
 
       {g.porCategoria.length > 0 && (
@@ -401,12 +418,11 @@ function SecaoGastos({ p, media, meta, paginaOficial, casa }: { p: Parlamentar; 
   );
 }
 
-function SecaoEleicoes({ p, eleitoral }: { p: Parlamentar; eleitoral: DadosEleitorais | null }) {
+export function SecaoEleicoes({ eleitoral, ehSuplente = false }: { eleitoral: DadosEleitorais | null; ehSuplente?: boolean }) {
   if (!eleitoral) return null;
   const { eleicao, patrimonio, campanha, candidatura2026 } = eleitoral;
   const [primeiro, ultimo] = [patrimonio[0], patrimonio.at(-1)];
   const variacao = ultimo && primeiro !== ultimo && primeiro.total > 0 ? ((ultimo.total - primeiro.total) / primeiro.total) * 100 : null;
-  const ehSuplente = p.participacao?.includes("Suplente");
 
   return (
     <Secao
