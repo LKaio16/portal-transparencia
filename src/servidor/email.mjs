@@ -7,7 +7,12 @@ import path from "node:path";
 
 const REMETENTE = process.env.EMAIL_REMETENTE ?? "Olho no Mandato <alertas@exemplo.com.br>";
 
-export const urlDoSite = () => (process.env.SITE_URL ?? "http://localhost:3000").replace(/\/$/, "");
+// Na Vercel, sem SITE_URL, usa o endereço de produção que ela mesma informa.
+export const urlDoSite = () =>
+  (
+    process.env.SITE_URL ??
+    (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "http://localhost:3000")
+  ).replace(/\/$/, "");
 
 const escapar = (t) => String(t).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 export { escapar };

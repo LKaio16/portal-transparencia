@@ -45,6 +45,8 @@ async function conectar() {
     await sql.unsafe(ESQUEMA);
     return { consultar: (texto, params = []) => sql.unsafe(texto, params), fechar: () => sql.end() };
   }
+  // Na Vercel o disco é só leitura: sem DATABASE_URL os alertas não funcionariam, então avisamos claramente.
+  if (process.env.VERCEL) throw new Error("Configure a variável DATABASE_URL (Neon/Supabase) nas configurações do projeto na Vercel.");
   const { PGlite } = await import("@electric-sql/pglite");
   const db = new PGlite(path.join(process.cwd(), "data", "banco-local"));
   await db.exec(ESQUEMA);
