@@ -1,7 +1,8 @@
 # Olho no Mandato
 
 Site que mostra, em linguagem simples, se deputados federais e senadores estão trabalhando:
-presença, votos, projetos apresentados, gastos da cota parlamentar, patrimônio declarado e dinheiro de campanha.
+presença, votos, projetos apresentados, gastos da cota parlamentar, patrimônio declarado, dinheiro de campanha,
+notícias e processos na Justiça (com curadoria). Quem quiser recebe alertas por e-mail.
 
 Fontes oficiais:
 - [Dados Abertos da Câmara](https://dadosabertos.camara.leg.br) e [cota parlamentar](https://www.camara.leg.br/cota-parlamentar/)
@@ -14,8 +15,10 @@ Fontes oficiais:
 npm install
 npm run coletar       # Câmara + Senado do ano atual (~1 min)
 npm run coletar:tse   # patrimônio e campanhas (TSE); baixa ~1 GB na primeira vez
+npm run coletar:noticias  # notícias das agências oficiais e da imprensa (GDELT)
 npm run resumir       # opcional: resumos em linguagem simples com IA (precisa de ANTHROPIC_API_KEY)
 npm run dev           # abre em http://localhost:3000
+npm run alertas       # envia o resumo diário para quem segue parlamentares
 ```
 
 Para processar outro ano: `ANO=2025 npm run coletar`.
@@ -36,6 +39,11 @@ O CPF dos parlamentares é usado só para cruzar as bases da Câmara com o TSE e
 | `src/app/page.tsx`, `src/app/senadores/` | Listas com busca e filtros |
 | `src/app/deputado/[id]/`, `src/app/senador/[id]/` | Fichas (usam `src/components/Ficha.tsx`) |
 | `src/app/comparar/` | Comparação lado a lado |
+| `scripts/coletar-noticias.mjs` | Notícias por parlamentar (Agência Câmara, Agência Senado, GDELT) |
+| `src/data/curadoria/processos.json` | Processos conferidos à mão; regras em [CURADORIA.md](CURADORIA.md) |
+| `src/servidor/` | Banco, e-mails e regras dos alertas (só roda no servidor) |
+| `src/app/api/alertas/` | Inscrição, confirmação, conta e descadastro |
+| `scripts/enviar-alertas.mjs` | E-mail diário com as novidades |
 | `src/app/como-funciona/page.tsx` | Metodologia e canal de correções |
 | `.github/workflows/coletar-dados.yml` | Atualização diária automática (GitHub Actions) |
 
@@ -49,3 +57,20 @@ As páginas são geradas estaticamente no build (uma por deputado), então o sit
    Para ela também gerar os resumos, cadastre o segredo `ANTHROPIC_API_KEY` no repositório.
 
 Antes de publicar, troque o e-mail de correções em `src/app/como-funciona/page.tsx`.
+
+## Alertas por e-mail
+
+Funcionam sem configurar nada no computador: sem `DATABASE_URL` o site usa um banco Postgres embutido
+(em `data/banco-local`) e, sem `RESEND_API_KEY`, os e-mails viram arquivos em `data/emails-enviados`.
+Copie `.env.example` para `.env.local` e preencha `SEGREDO_SITE` antes de rodar com `npm run start`.
+
+Para colocar no ar:
+
+1. Crie um banco Postgres gratuito (por exemplo [Neon](https://neon.tech) ou [Supabase](https://supabase.com)).
+   As tabelas são criadas sozinhas na primeira conexão.
+2. Crie uma conta no [Resend](https://resend.com), verifique seu domínio e gere uma chave.
+3. Cadastre `DATABASE_URL`, `RESEND_API_KEY`, `EMAIL_REMETENTE`, `SITE_URL` e `SEGREDO_SITE` na Vercel
+   (variáveis de ambiente) **e** nos segredos do repositório no GitHub (para o envio diário).
+4. Troque os e-mails de exemplo em `src/app/como-funciona/page.tsx` e `src/app/privacidade/page.tsx`.
+
+O banco local só aceita um processo por vez: pare o `npm run start` antes de rodar `npm run alertas` no computador.

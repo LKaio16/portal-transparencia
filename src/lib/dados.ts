@@ -6,6 +6,8 @@ import indiceSenado from "@/data/senado-indice.json";
 import metaSenado from "@/data/senado-meta.json";
 import tse from "@/data/tse.json";
 import resumos from "@/data/resumos.json";
+import noticias from "@/data/noticias.json";
+import processos from "@/data/curadoria/processos.json";
 
 export type Casa = "camara" | "senado";
 
@@ -99,6 +101,21 @@ export type Meta = {
   medias: { presenca: number; votacoes: number; gastos: number; proposicoes: number };
 };
 
+export type Noticia = { titulo: string; link: string; fonte: string; data: string; tipo: "oficial" | "imprensa" };
+
+export type Processo = {
+  parlamentar: string;
+  tribunal: string;
+  numero: string;
+  tipo: string;
+  situacao: string;
+  assunto: string;
+  fonteOficial: string;
+  fontesImprensa?: { titulo: string; veiculo: string; link: string }[];
+  verificadoEm: string;
+  verificadoPor: string;
+};
+
 // Item usado na comparação: números principais de qualquer parlamentar.
 export type ItemComparacao = ResumoParlamentar & {
   chave: string;
@@ -128,6 +145,14 @@ export function carregarParlamentar(casa: Casa, id: string): Parlamentar | null 
 
 export function carregarDadosEleitorais(casa: Casa, id: number): DadosEleitorais | null {
   return (tse as Record<string, DadosEleitorais>)[`${prefixo(casa)}:${id}`] ?? null;
+}
+
+export function carregarNoticias(casa: Casa, id: number): Noticia[] {
+  return (noticias as Record<string, Noticia[]>)[`${prefixo(casa)}:${id}`] ?? [];
+}
+
+export function carregarProcessos(casa: Casa, id: number): Processo[] {
+  return (processos as Processo[]).filter((p) => p.parlamentar === `${prefixo(casa)}:${id}`);
 }
 
 export function carregarResumos(): Record<string, string> {

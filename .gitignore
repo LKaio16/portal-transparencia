@@ -42,3 +42,9 @@ next-env.d.ts
 
 # dados brutos baixados pela coleta
 /data/raw
+
+# banco local (PGlite) e e-mails gerados em modo de teste
+/data/banco-local
+/data/emails-enviados
+.env*.local
+!.env.example

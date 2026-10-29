@@ -11,12 +11,18 @@
     "coletar:camara": "node scripts/coletar-camara.mjs",
     "coletar:senado": "node scripts/coletar-senado.mjs",
     "coletar:tse": "node scripts/coletar-tse.mjs",
-    "resumir": "node scripts/resumir.mjs"
+    "resumir": "node scripts/resumir.mjs",
+    "prebuild": "node scripts/validar-curadoria.mjs",
+    "validar-curadoria": "node scripts/validar-curadoria.mjs",
+    "coletar:noticias": "node scripts/coletar-noticias.mjs",
+    "alertas": "node scripts/enviar-alertas.mjs"
   },
   "dependencies": {
+    "@electric-sql/pglite": "^0.2.17",
     "csv-parse": "^5.6.0",
     "fflate": "^0.8.2",
     "next": "15.5.4",
+    "postgres": "^3.4.5",
     "react": "19.1.0",
     "react-dom": "19.1.0"
   },

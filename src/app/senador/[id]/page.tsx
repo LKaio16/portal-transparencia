@@ -1,6 +1,14 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { carregarDadosEleitorais, carregarIndice, carregarMeta, carregarParlamentar, carregarResumos } from "@/lib/dados";
+import {
+  carregarDadosEleitorais,
+  carregarIndice,
+  carregarMeta,
+  carregarNoticias,
+  carregarParlamentar,
+  carregarProcessos,
+  carregarResumos,
+} from "@/lib/dados";
 import Ficha from "@/components/Ficha";
 
 export const dynamicParams = false;
@@ -26,6 +34,8 @@ export default async function PaginaSenador({ params }: Props) {
       meta={carregarMeta("senado")}
       eleitoral={carregarDadosEleitorais("senado", sen.id)}
       resumos={carregarResumos()}
+      noticias={carregarNoticias("senado", sen.id)}
+      processos={carregarProcessos("senado", sen.id)}
     />
   );
 }

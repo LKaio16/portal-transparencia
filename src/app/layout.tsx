@@ -32,6 +32,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               <Link href="/" className="hover:underline">Deputados</Link>
               <Link href="/senadores" className="hover:underline">Senadores</Link>
               <Link href="/comparar" className="hover:underline">Comparar</Link>
+              <Link href="/alertas/conta" prefetch={false} className="hover:underline">Meus alertas</Link>
               <Link href="/como-funciona" className="hover:underline">Como funciona</Link>
             </nav>
           </div>
@@ -48,7 +49,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             </p>
             <p>
               Site independente e apartidário. Encontrou um erro?{" "}
-              <Link href="/como-funciona#correcoes" className="underline">Avise a gente</Link>.
+              <Link href="/como-funciona#correcoes" className="underline">Avise a gente</Link>.{" "}
+              <Link href="/privacidade" className="underline">Privacidade</Link>.
             </p>
           </div>
         </footer>

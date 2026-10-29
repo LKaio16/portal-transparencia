@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import type { Casa, DadosEleitorais, Meta, Parlamentar, Proposicao, Votacao } from "@/lib/dados";
+import type { Casa, DadosEleitorais, Meta, Noticia, Parlamentar, Processo, Proposicao, Votacao } from "@/lib/dados";
 import {
   CASAS,
   NOMES_TIPOS,
@@ -14,6 +14,7 @@ import {
   urlProposicao,
 } from "@/lib/formato";
 import Medidor from "./Medidor";
+import SeguirParlamentar from "./SeguirParlamentar";
 
 const MESES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
 
@@ -23,10 +24,12 @@ type Props = {
   meta: Meta;
   eleitoral: DadosEleitorais | null;
   resumos: Record<string, string>;
+  noticias: Noticia[];
+  processos: Processo[];
 };
 
 // Ficha completa de um parlamentar. Serve para deputados e senadores.
-export default function Ficha({ casa, p, meta, eleitoral, resumos }: Props) {
+export default function Ficha({ casa, p, meta, eleitoral, resumos, noticias, processos }: Props) {
   const textos = CASAS[casa];
   const paginaOficial = p.paginaOficial ?? urlCamaraDeputado(p.id);
   const chaveComparar = `${casa === "camara" ? "dep" : "sen"}-${p.id}`;
@@ -63,12 +66,16 @@ export default function Ficha({ casa, p, meta, eleitoral, resumos }: Props) {
         </div>
       </header>
 
+      <SeguirParlamentar chave={chaveComparar} nome={p.nome} />
+
       <Resumo p={p} meta={meta} casa={casa} />
       <SecaoPresenca p={p} media={meta.medias.presenca} casa={casa} />
       <SecaoVotacoes p={p} media={meta.medias.votacoes} resumos={resumos} />
       <SecaoProjetos p={p} media={meta.medias.proposicoes} casa={casa} resumos={resumos} />
       <SecaoGastos p={p} media={meta.medias.gastos} meta={meta} paginaOficial={paginaOficial} casa={casa} />
       <SecaoEleicoes p={p} eleitoral={eleitoral} />
+      <SecaoNoticias noticias={noticias} />
+      <SecaoJustica processos={processos} />
 
       <aside className="rounded-xl border border-line bg-surface p-4 text-sm text-ink-2">
         Dados de {meta.ano} até {formatarData(meta.atualizadoEm)}, das bases oficiais{" "}
@@ -483,3 +490,80 @@ function SecaoEleicoes({ p, eleitoral }: { p: Parlamentar; eleitoral: DadosEleit
     </Secao>
   );
 }
+
+function SecaoNoticias({ noticias }: { noticias: Noticia[] }) {
+  return (
+    <Secao
+      id="noticias"
+      titulo="Notícias recentes"
+      explicacao="Notícias dos últimos 90 dias que citam este parlamentar, das agências oficiais da Câmara e do Senado e da imprensa."
+    >
+      {noticias.length ? (
+        <ul className="divide-y divide-line">
+          {noticias.map((n) => (
+            <li key={n.link} className="py-3">
+              <a href={n.link} target="_blank" rel="noreferrer" className="font-bold underline">{n.titulo}</a>
+              <div className="text-sm text-muted">
+                {n.fonte} · {formatarData(n.data)}
+                {n.tipo === "oficial" && " · agência oficial"}
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-ink-2">Nenhuma notícia encontrada nos últimos 90 dias.</p>
+      )}
+      <p className="text-sm text-ink-2">
+        As notícias são encontradas automaticamente pelo nome do parlamentar e podem, raramente, se referir a outra pessoa com o
+        mesmo nome. O conteúdo é de responsabilidade de cada veículo.
+      </p>
+    </Secao>
+  );
+}
+
+function SecaoJustica({ processos }: { processos: Processo[] }) {
+  return (
+    <Secao
+      id="justica"
+      titulo="Na Justiça"
+      explicacao="Processos conferidos por nossa equipe em fontes oficiais (tribunais e Ministério Público)."
+    >
+      <p className="rounded-xl bg-track p-3 text-sm">
+        Ser investigado ou réu não significa ser culpado. Pela Constituição, ninguém é considerado culpado até o fim do processo,
+        quando não cabe mais recurso.
+      </p>
+      {processos.length ? (
+        <ul className="divide-y divide-line">
+          {processos.map((pr) => (
+            <li key={`${pr.tribunal}-${pr.numero}`} className="space-y-1 py-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="rounded-full border border-ink px-3 py-0.5 text-sm font-bold">{capitalizar(pr.situacao)}</span>
+                <span className="text-sm text-muted">{pr.tipo} · {pr.tribunal} · {pr.numero}</span>
+              </div>
+              <p>{pr.assunto}</p>
+              <div className="flex flex-wrap gap-x-4 text-sm">
+                <a href={pr.fonteOficial} target="_blank" rel="noreferrer" className="underline">Ver no site oficial</a>
+                {pr.fontesImprensa?.map((f) => (
+                  <a key={f.link} href={f.link} target="_blank" rel="noreferrer" className="underline">{f.veiculo}: {f.titulo}</a>
+                ))}
+              </div>
+              <div className="text-xs text-muted">Conferido em {formatarData(pr.verificadoEm)}</div>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-ink-2">
+          Nenhum processo cadastrado na nossa base até agora. Isso não quer dizer que não existam: a base é montada aos poucos, só
+          com informações conferidas. Você pode consultar diretamente no{" "}
+          <a href="https://portal.stf.jus.br/processos/" target="_blank" rel="noreferrer" className="underline">STF</a>, onde tramitam os
+          processos criminais de deputados e senadores.
+        </p>
+      )}
+      <p className="text-sm text-ink-2">
+        Sabe de uma informação que falta ou está desatualizada? <Link href="/como-funciona#correcoes" className="underline">Avise a gente</Link>.
+      </p>
+    </Secao>
+  );
+}
+
+const capitalizar = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);

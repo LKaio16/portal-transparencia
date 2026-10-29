@@ -1,6 +1,14 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { carregarDadosEleitorais, carregarIndice, carregarMeta, carregarParlamentar, carregarResumos } from "@/lib/dados";
+import {
+  carregarDadosEleitorais,
+  carregarIndice,
+  carregarMeta,
+  carregarNoticias,
+  carregarParlamentar,
+  carregarProcessos,
+  carregarResumos,
+} from "@/lib/dados";
 import Ficha from "@/components/Ficha";
 
 export const dynamicParams = false;
@@ -26,6 +34,8 @@ export default async function PaginaDeputado({ params }: Props) {
       meta={carregarMeta("camara")}
       eleitoral={carregarDadosEleitorais("camara", dep.id)}
       resumos={carregarResumos()}
+      noticias={carregarNoticias("camara", dep.id)}
+      processos={carregarProcessos("camara", dep.id)}
     />
   );
 }

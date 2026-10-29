@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { carregarMeta } from "@/lib/dados";
 import { formatarData } from "@/lib/formato";
 
@@ -83,6 +84,22 @@ export default function ComoFunciona() {
           <Item termo="Custo da campanha">
             Soma das receitas declaradas na prestação de contas da campanha que deu o mandato atual. Consideramos dinheiro público o
             que veio do Fundo Especial de Financiamento de Campanha (fundo eleitoral) e do Fundo Partidário.
+          </Item>
+          <Item termo="Notícias">
+            Buscamos todo dia as notícias da Agência Câmara e da Agência Senado e, na imprensa, pela base aberta GDELT. Nas agências,
+            só ligamos a notícia ao parlamentar quando aparecem o nome e o estado juntos, como em &quot;deputada Fulana (PT-SP)&quot;. Na
+            imprensa, o nome precisa estar no título. Mostramos só título, veículo e data, com link para a notícia original.
+          </Item>
+          <Item termo="Na Justiça">
+            Processos cadastrados à mão, depois de conferidos no site do tribunal ou do Ministério Público. Cada registro mostra a
+            situação exata (investigado, réu, condenado com ou sem recurso, absolvido, arquivado), o link oficial e a data da última
+            conferência. Desfechos favoráveis, como arquivamento e absolvição, também são publicados. Processos em segredo de justiça
+            não entram.
+          </Item>
+          <Item termo="Alertas por e-mail">
+            Quem pede alertas recebe no máximo um e-mail por dia, só quando há votação, projeto novo ou notícia sobre quem acompanha.
+            O cadastro só vale depois de confirmado pelo link enviado ao e-mail, e pode ser cancelado com um clique.{" "}
+            <Link href="/privacidade" className="underline">Veja a política de privacidade</Link>.
           </Item>
           <Item termo="Resumos em linguagem simples">
             Quando aparece um resumo em negrito, ele foi escrito por inteligência artificial a partir do texto oficial (a ementa), que

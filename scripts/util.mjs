@@ -8,6 +8,13 @@ export const RAIZ = path.resolve(import.meta.dirname, "..");
 export const PASTA_RAW = path.join(RAIZ, "data", "raw");
 export const PASTA_SAIDA = path.join(RAIZ, "src", "data");
 
+// Os scripts usam a mesma configuração local do site (SITE_URL, SEGREDO_SITE...), se existir.
+try {
+  process.loadEnvFile(path.join(RAIZ, ".env.local"));
+} catch {
+  // sem .env.local: valem só as variáveis de ambiente
+}
+
 // Lê um CSV linha a linha (como objeto). Os arquivos do TSE e do Senado vêm em latin1.
 export async function* linhasCsv(arquivo, { encoding = "utf8", fromLine = 1 } = {}) {
   const parser = fs.createReadStream(arquivo, { encoding }).pipe(
