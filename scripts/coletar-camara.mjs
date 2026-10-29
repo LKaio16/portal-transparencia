@@ -1,23 +1,20 @@
 // Coleta os dados abertos da Câmara dos Deputados e gera os JSON usados pelo site.
 //
 // Uso:
-//   node scripts/coletar.mjs              -> baixa os arquivos do ano atual e processa
-//   node scripts/coletar.mjs --sem-baixar -> reaproveita os arquivos já baixados em data/raw
-//   ANO=2025 node scripts/coletar.mjs     -> processa outro ano
+//   node scripts/coletar-camara.mjs              -> baixa os arquivos do ano atual e processa
+//   node scripts/coletar-camara.mjs --sem-baixar -> reaproveita os arquivos já baixados em data/raw
+//   ANO=2025 node scripts/coletar-camara.mjs     -> processa outro ano
 //
 // Fontes: https://dadosabertos.camara.leg.br (arquivos em lote + API v2)
 //         https://www.camara.leg.br/cotas (Cota para o Exercício da Atividade Parlamentar)
 
 import fs from "node:fs";
 import path from "node:path";
-import { parse } from "csv-parse";
 import { unzipSync } from "fflate";
+import { PASTA_RAW, PASTA_SAIDA, arredondar, buscarJson, dia, emParalelo, linhasCsv, ordenarSomas } from "./util.mjs";
 
 const ANO = Number(process.env.ANO ?? new Date().getFullYear());
 const SEM_BAIXAR = process.argv.includes("--sem-baixar");
-const RAIZ = path.resolve(import.meta.dirname, "..");
-const PASTA_RAW = path.join(RAIZ, "data", "raw");
-const PASTA_SAIDA = path.join(RAIZ, "src", "data");
 const API = "https://dadosabertos.camara.leg.br/api/v2";
 const LOTE = "https://dadosabertos.camara.leg.br/arquivos";
 
@@ -28,6 +25,8 @@ const ARQUIVOS = {
   votacoes: `${LOTE}/votacoes/csv/votacoes-${ANO}.csv`,
   autores: `${LOTE}/proposicoesAutores/csv/proposicoesAutores-${ANO}.csv`,
   proposicoes: `${LOTE}/proposicoes/csv/proposicoes-${ANO}.csv`,
+  votacoesProposicoes: `${LOTE}/votacoesProposicoes/csv/votacoesProposicoes-${ANO}.csv`,
+  votacoesObjetos: `${LOTE}/votacoesObjetos/csv/votacoesObjetos-${ANO}.csv`,
   cota: `https://www.camara.leg.br/cotas/Ano-${ANO}.csv.zip`,
 };
 
@@ -39,6 +38,9 @@ const TIPOS_PRINCIPAIS = {
   PDL: "Projeto de Decreto Legislativo",
   PRC: "Projeto de Resolução",
 };
+
+// Tipos que representam "o assunto" de uma votação no Plenário (inclui Medidas Provisórias).
+const TIPOS_VOTADOS = new Set([...Object.keys(TIPOS_PRINCIPAIS), "MPV", "PLN", "PLV"]);
 
 // ---------- utilidades ----------
 
@@ -62,21 +64,7 @@ function caminhoCsvCota(zipPath) {
   return csv;
 }
 
-async function* linhasCsv(arquivo) {
-  const parser = fs.createReadStream(arquivo).pipe(
-    parse({ delimiter: ";", columns: true, bom: true, relax_quotes: true, relax_column_count: true }),
-  );
-  for await (const linha of parser) yield linha;
-}
-
-async function buscarApi(caminho) {
-  const resp = await fetch(`${API}${caminho}`, { headers: { accept: "application/json" } });
-  if (!resp.ok) throw new Error(`API ${caminho}: HTTP ${resp.status}`);
-  return resp.json();
-}
-
-const arredondar = (n, casas = 2) => Math.round(n * 10 ** casas) / 10 ** casas;
-const dia = (dataHora) => (dataHora ?? "").slice(0, 10);
+const buscarApi = (caminho) => buscarJson(`${API}${caminho}`);
 
 // ---------- coleta ----------
 
@@ -160,6 +148,53 @@ async function main() {
     .map((id) => votacoes.get(id))
     .sort((a, b) => b.data.localeCompare(a.data) || b.id.localeCompare(a.id));
 
+  // A descrição oficial da votação diz o procedimento ("Rejeitado o requerimento..."), não o assunto.
+  // Descobrimos qual proposta principal estava em jogo para explicar do que se trata.
+  console.log("Identificando o assunto das votações...");
+  const nominais = new Set(votacoesNominais.map((v) => v.id));
+  const principalPorVotacao = new Map(); // idVotacao -> {id, materia, ementa} | {materia} (só o título)
+  const propostaPorTitulo = new Map(); // "PLP 186/2026" -> {id, materia, ementa}
+  const registrarPrincipal = (idVotacao, proposta, prioridade) => {
+    const atual = principalPorVotacao.get(idVotacao);
+    if (!atual || atual.prioridade > prioridade) principalPorVotacao.set(idVotacao, { ...proposta, prioridade });
+  };
+  for (const [arquivo, prioridadeBase] of [[caminhos.votacoesProposicoes, 0], [caminhos.votacoesObjetos, 2]]) {
+    for await (const r of linhasCsv(arquivo)) {
+      if (!nominais.has(r.idVotacao)) continue;
+      const materia = `${r.proposicao_siglaTipo} ${r.proposicao_numero}/${r.proposicao_ano}`;
+      if (TIPOS_VOTADOS.has(r.proposicao_siglaTipo)) {
+        const proposta = { id: r.proposicao_id, materia, ementa: r.proposicao_ementa.replace(/\s+/g, " ").trim() };
+        propostaPorTitulo.set(materia, proposta);
+        registrarPrincipal(r.idVotacao, proposta, prioridadeBase);
+      } else {
+        // Ex.: "RPD 1 => PLP 186/2026": requerimento sobre outra proposta.
+        const alvo = r.proposicao_titulo?.split("=>")[1]?.trim();
+        if (alvo) registrarPrincipal(r.idVotacao, { materia: alvo }, prioridadeBase + 1);
+      }
+    }
+  }
+  const semEmenta = [...new Set([...principalPorVotacao.values()].filter((p) => !p.id && !propostaPorTitulo.has(p.materia)).map((p) => p.materia))];
+  await emParalelo(semEmenta, 6, async (materia) => {
+    const [, sigla, numero, ano] = materia.match(/^(\S+) (\d+)\/(\d+)$/) ?? [];
+    if (!sigla) return;
+    try {
+      const { dados } = await buscarApi(`/proposicoes?siglaTipo=${sigla}&numero=${numero}&ano=${ano}`);
+      const p = dados[0];
+      if (p) propostaPorTitulo.set(materia, { id: String(p.id), materia, ementa: p.ementa.replace(/\s+/g, " ").trim() });
+    } catch (erro) {
+      console.warn(`  não foi possível buscar ${materia}: ${erro.message}`);
+    }
+  });
+  for (const v of votacoesNominais) {
+    const achada = principalPorVotacao.get(v.id);
+    const p = achada?.id ? achada : achada && propostaPorTitulo.get(achada.materia);
+    v.materia = p?.materia ?? achada?.materia ?? null;
+    v.ementa = p?.ementa ?? null;
+    v.link = p?.id ? `https://www.camara.leg.br/propostas-legislativas/${p.id}` : null;
+    v.chaveResumo = p?.id ? `cam:${p.id}` : null;
+    delete v.idProposicao;
+  }
+
   // --- Cota parlamentar (gastos) ---
   console.log("Processando gastos da cota parlamentar...");
   for await (const g of linhasCsv(caminhos.cota)) {
@@ -230,13 +265,8 @@ async function main() {
     const g = dep.gastos;
     g.total = arredondar(g.total);
     g.porMes = g.porMes.map((v) => arredondar(v));
-    g.porCategoria = Object.entries(g.porCategoria)
-      .map(([categoria, valor]) => ({ categoria, valor: arredondar(valor) }))
-      .sort((a, b) => b.valor - a.valor);
-    g.fornecedores = Object.entries(g.fornecedores)
-      .map(([nome, valor]) => ({ nome, valor: arredondar(valor) }))
-      .sort((a, b) => b.valor - a.valor)
-      .slice(0, 8);
+    g.porCategoria = ordenarSomas(g.porCategoria, "categoria");
+    g.fornecedores = ordenarSomas(g.fornecedores, "nome", 8);
 
     dep.proposicoes.lista.sort((a, b) => b.data.localeCompare(a.data));
 

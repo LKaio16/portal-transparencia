@@ -15,6 +15,7 @@ export const NOMES_TIPOS: Record<string, string> = {
   PEC: "Proposta de Emenda à Constituição",
   PDL: "Projeto de Decreto Legislativo",
   PRC: "Projeto de Resolução",
+  PRS: "Projeto de Resolução do Senado",
 };
 
 const moeda = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
@@ -27,3 +28,36 @@ export const formatarData = (iso: string) => (iso ? iso.slice(0, 10).split("-").
 
 export const urlCamaraDeputado = (id: number) => `https://www.camara.leg.br/deputados/${id}`;
 export const urlProposicao = (id: number | string) => `https://www.camara.leg.br/propostas-legislativas/${id}`;
+
+// Textos que mudam entre Câmara e Senado.
+export const CASAS = {
+  camara: {
+    rota: "/deputado",
+    cargo: "Deputado(a) federal",
+    plural: "deputados",
+    pluralTitulo: "Deputados",
+    singular: "deputado",
+    plenario: "Plenário da Câmara",
+    prefixoResumo: "cam",
+  },
+  senado: {
+    rota: "/senador",
+    cargo: "Senador(a)",
+    plural: "senadores",
+    pluralTitulo: "Senadores",
+    singular: "senador",
+    plenario: "Plenário do Senado",
+    prefixoResumo: "sen",
+  },
+} as const;
+
+// "Eleito Por Qp" / "Suplente" / "Não Eleito" (TSE) -> texto simples.
+export function textoResultado(situacao: string | null) {
+  if (!situacao) return "resultado ainda não divulgado";
+  const s = situacao.toLowerCase();
+  if (s.startsWith("não eleito")) return "não foi eleito(a)";
+  if (s.startsWith("eleito")) return "foi eleito(a)";
+  if (s.startsWith("suplente")) return "ficou como suplente";
+  if (s.includes("2º turno")) return "foi ao 2º turno";
+  return s;
+}

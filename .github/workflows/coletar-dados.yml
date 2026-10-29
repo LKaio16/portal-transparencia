@@ -21,6 +21,13 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run coletar
+      # Resume as propostas novas do dia (só roda se o segredo ANTHROPIC_API_KEY estiver configurado no repositório).
+      # Os dados do TSE (npm run coletar:tse) não mudam todo dia e são atualizados manualmente.
+      - name: Resumir propostas novas
+        if: env.ANTHROPIC_API_KEY != ''
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: npm run resumir
       - name: Salvar dados atualizados
         run: |
           git config user.name "github-actions[bot]"

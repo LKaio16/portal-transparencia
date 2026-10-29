@@ -8,7 +8,8 @@ export const metadata: Metadata = { title: "Como funciona" };
 const EMAIL_CORRECOES = "contato@exemplo.com.br";
 
 export default function ComoFunciona() {
-  const meta = carregarMeta();
+  const meta = carregarMeta("camara");
+  const metaSenado = carregarMeta("senado");
   return (
     <article className="max-w-3xl space-y-8">
       <header className="space-y-2">
@@ -29,20 +30,38 @@ export default function ComoFunciona() {
             <a className="underline" href="https://www.camara.leg.br/cota-parlamentar/" target="_blank" rel="noreferrer">Cota para o Exercício da Atividade Parlamentar</a>:
             todos os gastos reembolsados pela Câmara.
           </li>
+          <li>
+            <a className="underline" href="https://legis.senado.leg.br/dadosabertos" target="_blank" rel="noreferrer">Dados Abertos do Senado Federal</a>:
+            senadores em exercício, votações nominais (com o motivo de cada ausência) e proposições.
+          </li>
+          <li>
+            <a className="underline" href="https://www.senado.leg.br/transparencia/LAI/verba/" target="_blank" rel="noreferrer">CEAPS</a>:
+            gastos reembolsados pela cota dos senadores.
+          </li>
+          <li>
+            <a className="underline" href="https://dadosabertos.tse.jus.br" target="_blank" rel="noreferrer">Dados Abertos do TSE</a>: candidaturas,
+            bens declarados e prestação de contas das campanhas.
+          </li>
         </ul>
         <p>
           Os dados são atualizados automaticamente. Última atualização: <strong>{formatarData(meta.atualizadoEm)}</strong>.
           Período analisado: <strong>{meta.ano}</strong> ({meta.sessoesPlenario} sessões deliberativas e {meta.votacoesNominais}{" "}
-          votações nominais no Plenário até agora).
+          votações nominais no Plenário da Câmara e {metaSenado.votacoesNominais} no Plenário do Senado até agora).
         </p>
       </Bloco>
 
       <Bloco titulo="Como calculamos cada número">
         <dl className="space-y-4">
-          <Item termo="Presença">
+          <Item termo="Presença (Câmara)">
             Sessões deliberativas do Plenário (as que têm votação) com presença registrada, divididas pelo total dessas sessões
             desde que o deputado começou a atuar no ano. Assim, quem assumiu no meio do ano (suplente) não é comparado com um
             período em que não estava no cargo.
+          </Item>
+          <Item termo="Presença (Senado)">
+            O Senado registra, em cada votação nominal, se o senador votou, estava presente sem votar ou estava ausente — e o motivo
+            da ausência (licença de saúde, missão oficial, atividade parlamentar etc.). Contamos como presença quem votou ou estava
+            presente, e mostramos as ausências justificadas separadas das faltas sem justificativa. Só entram as votações em que o
+            senador estava em exercício.
           </Item>
           <Item termo="Participação nas votações">
             Votações nominais do Plenário em que o deputado registrou voto (Sim, Não, Abstenção, Obstrução ou presidindo a
@@ -57,17 +76,30 @@ export default function ComoFunciona() {
             Soma do valor líquido de todas as notas reembolsadas pela cota parlamentar no ano. O valor máximo da cota muda de
             estado para estado, porque inclui as passagens até Brasília.
           </Item>
+          <Item termo="Patrimônio declarado">
+            Soma dos bens que o próprio candidato declarou ao TSE na eleição que lhe deu o mandato atual e, se concorreu, na eleição de
+            2026. Os valores não são conferidos pelo TSE e imóveis costumam ser declarados pelo valor de compra.
+          </Item>
+          <Item termo="Custo da campanha">
+            Soma das receitas declaradas na prestação de contas da campanha que deu o mandato atual. Consideramos dinheiro público o
+            que veio do Fundo Especial de Financiamento de Campanha (fundo eleitoral) e do Fundo Partidário.
+          </Item>
+          <Item termo="Resumos em linguagem simples">
+            Quando aparece um resumo em negrito, ele foi escrito por inteligência artificial a partir do texto oficial (a ementa), que
+            continua disponível logo abaixo em &quot;Texto oficial&quot;. O resumo pode simplificar detalhes: na dúvida, vale sempre o texto oficial.
+          </Item>
         </dl>
       </Bloco>
 
       <Bloco titulo="O que os números não mostram">
         <ul className="list-disc space-y-1 pl-6">
-          <li>Faltas justificadas (licença médica, missão oficial, licença-maternidade etc.) aparecem como falta nos dados abertos.</li>
+          <li>Na Câmara, faltas justificadas (licença médica, missão oficial, licença-maternidade etc.) aparecem como falta nos dados abertos.</li>
+          <li>Ter patrimônio alto ou que cresceu não é crime nem indício de irregularidade por si só.</li>
           <li>Trabalho nas comissões, relatorias e articulação política não estão contados aqui.</li>
           <li>Quantidade de projetos não mede qualidade: um bom projeto pode valer mais que dez.</li>
           <li>Gastar a cota é permitido por lei. Um gasto alto não significa irregularidade.</li>
         </ul>
-        <p>Use estes números como ponto de partida para conhecer o trabalho do seu deputado, não como veredito.</p>
+        <p>Use estes números como ponto de partida para conhecer o trabalho de quem você elegeu, não como veredito.</p>
       </Bloco>
 
       <Bloco titulo="Encontrou um erro?" id="correcoes">

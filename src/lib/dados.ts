@@ -1,9 +1,15 @@
 import fs from "node:fs";
 import path from "node:path";
-import indice from "@/data/indice.json";
-import meta from "@/data/meta.json";
+import indiceCamara from "@/data/indice.json";
+import metaCamara from "@/data/meta.json";
+import indiceSenado from "@/data/senado-indice.json";
+import metaSenado from "@/data/senado-meta.json";
+import tse from "@/data/tse.json";
+import resumos from "@/data/resumos.json";
 
-export type ResumoDeputado = {
+export type Casa = "camara" | "senado";
+
+export type ResumoParlamentar = {
   id: number;
   nome: string;
   partido: string;
@@ -19,8 +25,12 @@ export type Votacao = {
   id: string;
   data: string;
   descricao: string;
-  idProposicao: string | null;
+  materia: string | null;
+  ementa: string | null;
+  link: string | null;
+  chaveResumo: string | null;
   aprovada: boolean | null;
+  secreta?: boolean;
   voto: string;
 };
 
@@ -33,17 +43,21 @@ export type Proposicao = {
   data: string;
   situacao: string;
   primeiroAutor: boolean;
+  link?: string;
 };
 
-export type Deputado = {
+export type Parlamentar = {
   id: number;
   nome: string;
   partido: string;
   uf: string;
   foto: string;
   email: string;
-  primeiraAtividade: string | null;
+  paginaOficial?: string;
+  participacao?: string;
+  mandato?: { inicio: string | null; fim: string | null };
   presenca: { sessoes: number; presentes: number; percentual: number | null };
+  ausencias?: { justificadas: number; semJustificativa: number; semRegistro: number };
   votacoes: { total: number; votou: number; percentual: number | null; recentes: Votacao[] };
   gastos: {
     total: number;
@@ -63,19 +77,75 @@ export type Deputado = {
   };
 };
 
-export type Meta = typeof meta;
+export type DadosEleitorais = {
+  eleicao: { ano: number; cargo: string; partido: string; nomeUrna: string; situacao: string };
+  patrimonio: { ano: number; cargo: string; total: number; porTipo: { tipo: string; valor: number }[] }[];
+  campanha: {
+    ano: number;
+    total: number;
+    publico: number;
+    percentualPublico: number;
+    porOrigem: { origem: string; valor: number }[];
+    doadores: { nome: string; valor: number }[];
+  } | null;
+  candidatura2026: { cargo: string; partido: string; situacao: string | null } | null;
+};
 
-export function carregarIndice(): ResumoDeputado[] {
-  return indice as ResumoDeputado[];
+export type Meta = {
+  ano: number;
+  atualizadoEm: string;
+  votacoesNominais: number;
+  sessoesPlenario?: number;
+  medias: { presenca: number; votacoes: number; gastos: number; proposicoes: number };
+};
+
+// Item usado na comparação: números principais de qualquer parlamentar.
+export type ItemComparacao = ResumoParlamentar & {
+  chave: string;
+  casa: Casa;
+  patrimonio: number | null;
+  campanha: number | null;
+  percentualPublico: number | null;
+};
+
+const prefixo = (casa: Casa) => (casa === "camara" ? "dep" : "sen");
+
+export function carregarIndice(casa: Casa): ResumoParlamentar[] {
+  return (casa === "camara" ? indiceCamara : indiceSenado) as ResumoParlamentar[];
 }
 
-export function carregarMeta(): Meta {
-  return meta;
+export function carregarMeta(casa: Casa): Meta {
+  return casa === "camara" ? metaCamara : metaSenado;
 }
 
 // Lido só no build (páginas estáticas), então pode usar o sistema de arquivos.
-export function carregarDeputado(id: string): Deputado | null {
-  const arquivo = path.join(process.cwd(), "src", "data", "deputados", `${Number(id)}.json`);
+export function carregarParlamentar(casa: Casa, id: string): Parlamentar | null {
+  const pasta = casa === "camara" ? "deputados" : "senadores";
+  const arquivo = path.join(process.cwd(), "src", "data", pasta, `${Number(id)}.json`);
   if (!fs.existsSync(arquivo)) return null;
   return JSON.parse(fs.readFileSync(arquivo, "utf-8"));
+}
+
+export function carregarDadosEleitorais(casa: Casa, id: number): DadosEleitorais | null {
+  return (tse as Record<string, DadosEleitorais>)[`${prefixo(casa)}:${id}`] ?? null;
+}
+
+export function carregarResumos(): Record<string, string> {
+  return resumos as Record<string, string>;
+}
+
+export function carregarItensComparacao(): ItemComparacao[] {
+  return (["camara", "senado"] as Casa[]).flatMap((casa) =>
+    carregarIndice(casa).map((p) => {
+      const e = carregarDadosEleitorais(casa, p.id);
+      return {
+        ...p,
+        chave: `${prefixo(casa)}-${p.id}`,
+        casa,
+        patrimonio: e?.patrimonio.at(-1)?.total ?? null,
+        campanha: e?.campanha?.total ?? null,
+        percentualPublico: e?.campanha?.percentualPublico ?? null,
+      };
+    }),
+  );
 }

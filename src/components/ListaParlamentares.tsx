@@ -3,8 +3,8 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import type { ResumoDeputado } from "@/lib/dados";
-import { UFS, formatarPercentual, formatarReaisCurto } from "@/lib/formato";
+import type { Casa, ResumoParlamentar } from "@/lib/dados";
+import { CASAS, UFS, formatarPercentual, formatarReaisCurto } from "@/lib/formato";
 import Medidor from "./Medidor";
 
 type Ordem = "nome" | "presenca" | "votacoes" | "proposicoes" | "gastos";
@@ -20,32 +20,35 @@ const ORDENS: Record<Ordem, string> = {
 // Tira acentos para a busca achar "joao" em "João".
 const normalizar = (t: string) => t.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
-export default function ListaDeputados({
-  deputados,
+export default function ListaParlamentares({
+  casa,
+  parlamentares,
   medias,
 }: {
-  deputados: ResumoDeputado[];
+  casa: Casa;
+  parlamentares: ResumoParlamentar[];
   medias: { presenca: number };
 }) {
+  const textos = CASAS[casa];
   const [busca, setBusca] = useState("");
   const [uf, setUf] = useState("");
   const [partido, setPartido] = useState("");
   const [ordem, setOrdem] = useState<Ordem>("nome");
 
-  const partidos = useMemo(() => [...new Set(deputados.map((d) => d.partido))].sort(), [deputados]);
+  const partidos = useMemo(() => [...new Set(parlamentares.map((d) => d.partido))].sort(), [parlamentares]);
 
   const filtrados = useMemo(() => {
     const termo = normalizar(busca.trim());
-    const lista = deputados.filter(
+    const lista = parlamentares.filter(
       (d) => (!termo || normalizar(d.nome).includes(termo)) && (!uf || d.uf === uf) && (!partido || d.partido === partido),
     );
-    const valor = (d: ResumoDeputado) => d[ordem as Exclude<Ordem, "nome">] ?? 0;
+    const valor = (d: ResumoParlamentar) => d[ordem as Exclude<Ordem, "nome">] ?? 0;
     return lista.sort((a, b) => {
       if (ordem === "nome") return a.nome.localeCompare(b.nome, "pt-BR");
       if (ordem === "presenca" || ordem === "votacoes") return valor(a) - valor(b);
       return valor(b) - valor(a);
     });
-  }, [deputados, busca, uf, partido, ordem]);
+  }, [parlamentares, busca, uf, partido, ordem]);
 
   const limpar = () => {
     setBusca("");
@@ -55,7 +58,7 @@ export default function ListaDeputados({
 
   return (
     <section aria-labelledby="titulo-lista" className="space-y-4">
-      <h2 id="titulo-lista" className="text-2xl font-bold">Encontre seu deputado</h2>
+      <h2 id="titulo-lista" className="text-2xl font-bold">Encontre seu {textos.singular}</h2>
 
       <div className="grid gap-3 rounded-xl border border-line bg-surface p-4 sm:grid-cols-2 lg:grid-cols-4">
         <Campo rotulo="Nome">
@@ -93,7 +96,7 @@ export default function ListaDeputados({
       </div>
 
       <p className="text-ink-2" aria-live="polite">
-        {filtrados.length === 1 ? "1 deputado encontrado" : `${filtrados.length} deputados encontrados`}
+        {filtrados.length === 1 ? `1 ${textos.singular} encontrado` : `${filtrados.length} ${textos.plural} encontrados`}
         {(busca || uf || partido) && (
           <>
             {" · "}
@@ -106,7 +109,7 @@ export default function ListaDeputados({
         {filtrados.map((d) => (
           <li key={d.id}>
             <Link
-              href={`/deputado/${d.id}`}
+              href={`${textos.rota}/${d.id}`}
               className="flex h-full gap-3 rounded-xl border border-line bg-surface p-3 transition hover:border-accent"
             >
               <Image
