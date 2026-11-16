@@ -1,13 +1,13 @@
 {
   "ano": 2026,
-  "atualizadoEm": "2026-11-15T16:03:27.448Z",
+  "atualizadoEm": "2026-11-16T19:15:36.390Z",
   "totalDeputados": 513,
   "sessoesPlenario": 80,
   "votacoesNominais": 126,
   "medias": {
-    "presenca": 93.9,
-    "votacoes": 79.5,
-    "gastos": 288305.5,
+    "presenca": 93.8,
+    "votacoes": 79.3,
+    "gastos": 289688.1,
     "proposicoes": 15.7
   }
 }
