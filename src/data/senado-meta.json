@@ -1,12 +1,12 @@
 {
   "ano": 2026,
-  "atualizadoEm": "2026-11-16T19:15:54.985Z",
+  "atualizadoEm": "2026-11-18T17:46:28.660Z",
   "totalSenadores": 81,
   "votacoesNominais": 70,
   "medias": {
     "presenca": 87.7,
     "votacoes": 72.6,
-    "gastos": 319968.6,
-    "proposicoes": 12.9
+    "gastos": 324640.1,
+    "proposicoes": 13.1
   }
 }
